@@ -1,10 +1,3 @@
-//
-//  CESDKDemoUITestsLaunchTests.swift
-//  CESDKDemoUITests
-//
-//  Created by Matthew Jonat on 13.06.25.
-//
-
 import XCTest
 
 final class CESDKDemoUITestsLaunchTests: XCTestCase {
