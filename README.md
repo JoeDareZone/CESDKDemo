@@ -31,18 +31,22 @@ Built for IMG.LY's Solutions Engineer interview assignment.
 
 ### Main Journal Interface
 ![Main Interface](CESDKDemo/Images/01-main-interface.png)
+
 *Clean, focused interface with "Add New Memory" button*
 
 ### CE.SDK Photo Editor
 ![Photo Editor](CESDKDemo/Images/02-photo-editor.png)
+
 *Professional editing tools with filters, text, and stickers*
 
 ### Memory Gallery
 ![Memory Gallery](CESDKDemo/Images/03-memory-gallery.png)
+
 *Grid layout showing saved memories with tap-to-edit*
 
 ### Re-editing Experience
 ![Re-editing](CESDKDemo/Images/04-re-editing.png)
+
 *Seamless continuation of editing sessions*
 
 ## 🏗️ Architecture
