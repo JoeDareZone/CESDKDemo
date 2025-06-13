@@ -3,12 +3,21 @@ import PhotosUI
 import IMGLYPhotoEditor
 import IMGLYEngine
 
+struct JournalEntry: Codable, Identifiable {
+    let id = UUID()
+    let imagePath: String
+    let scenePath: String
+    let createdAt: Date
+    let title: String
+}
+
 struct ContentView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
     @State private var showEditor = false
     @State private var tempURL: URL?
     @State private var currentEngine: Engine?
+    @State private var journalEntries: [JournalEntry] = []
     
     let engineSettings = EngineSettings(
         license: "BpLnq7K-IELfyH7VwXuepx6z7I7Z1ByVXWvOymVZ12Mfb2dOAGQQI7hbCnfQ4d4s",
@@ -39,6 +48,11 @@ struct ContentView: View {
                         }
                     }
                 
+                if !journalEntries.isEmpty {
+                    Text("Saved memories: \(journalEntries.count)")
+                        .foregroundColor(.secondary)
+                }
+                
                 Spacer()
             }
             .padding()
@@ -67,16 +81,76 @@ struct ContentView: View {
                                 try await engine.asset.addSource(TextAssetSource(engine: engine))
                             }
                         }
+                        .imgly.onExport { engine, _ in
+                            Task {
+                                await saveJournalEntry(engine: engine)
+                                showEditor = false
+                            }
+                        }
                         .toolbar {
                             ToolbarItem(placement: .navigationBarTrailing) {
-                                Button("Done") {  // Add Done button
-                                    // TODO: Add save functionality
-                                    showEditor = false
+                                Button("Save to Journal") {
+                                    Task {
+                                        await saveJournalEntry(engine: currentEngine!)
+                                        showEditor = false
+                                    }
                                 }
                             }
                         }
                 }
             }
+            .onAppear {
+                loadJournalEntries()
+            }
+        }
+    }
+    
+    private func saveJournalEntry(engine: Engine) async {
+        do {
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let entryID = UUID().uuidString
+            
+            let scene = try engine.scene.get()!
+            let imageData = try await engine.block.export(scene, mimeType: .jpeg)
+            let imagePath = "journal_\(entryID).jpg"
+            let imageURL = documentsURL.appendingPathComponent(imagePath)
+            try imageData.write(to: imageURL)
+            
+            let sceneString = try await engine.scene.saveToString()
+            let sceneData = sceneString.data(using: .utf8)!
+            let scenePath = "scene_\(entryID).scene"
+            let sceneURL = documentsURL.appendingPathComponent(scenePath)
+            try sceneData.write(to: sceneURL)
+            
+            let newEntry = JournalEntry(
+                imagePath: imagePath,
+                scenePath: scenePath,
+                createdAt: Date(),
+                title: "Memory from \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none))"
+            )
+            
+            await MainActor.run {
+                journalEntries.append(newEntry)
+                saveJournalEntries()
+            }
+            
+            print("Journal entry saved successfully!")
+            
+        } catch {
+            print("Failed to save journal entry: \(error)")
+        }
+    }
+    
+    private func loadJournalEntries() {
+        if let data = UserDefaults.standard.data(forKey: "JournalEntries"),
+           let entries = try? JSONDecoder().decode([JournalEntry].self, from: data) {
+            journalEntries = entries.sorted { $0.createdAt > $1.createdAt }
+        }
+    }
+    
+    private func saveJournalEntries() {
+        if let data = try? JSONEncoder().encode(journalEntries) {
+            UserDefaults.standard.set(data, forKey: "JournalEntries")
         }
     }
     
