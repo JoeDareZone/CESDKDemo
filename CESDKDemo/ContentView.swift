@@ -48,9 +48,37 @@ struct ContentView: View {
                         }
                     }
                 
-                if !journalEntries.isEmpty {
-                    Text("Saved memories: \(journalEntries.count)")
-                        .foregroundColor(.secondary)
+                Text("Your Memories")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                
+                if journalEntries.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                        Text("No memories yet")
+                            .foregroundColor(.secondary)
+                        Text("Tap 'Add New Memory' to get started!")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 15) {
+                            ForEach(journalEntries) { entry in
+                                JournalEntryView(entry: entry) {
+                                    print("Tapped entry: \(entry.title)")
+                                }
+                            }
+                        }
+                        .padding()
+                    }
                 }
                 
                 Spacer()
@@ -134,10 +162,10 @@ struct ContentView: View {
                 saveJournalEntries()
             }
             
-            print("Journal entry saved successfully!")
+            print("✅ Journal entry saved successfully!")
             
         } catch {
-            print("Failed to save journal entry: \(error)")
+            print("❌ Failed to save journal entry: \(error)")
         }
     }
     
@@ -175,6 +203,49 @@ struct ContentView: View {
         } catch {
             print("Failed to load image: \(error)")
         }
+    }
+}
+
+struct JournalEntryView: View {
+    let entry: JournalEntry
+    let onTap: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            AsyncImage(url: documentsURL.appendingPathComponent(entry.imagePath)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fill)
+                    .clipped()
+            } placeholder: {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        ProgressView()
+                    )
+            }
+            .cornerRadius(12)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                
+                Text(entry.createdAt, style: .date)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
+    }
+    
+    private var documentsURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 }
 
