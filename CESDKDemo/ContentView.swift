@@ -33,22 +33,35 @@ struct ContentView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                if let image = selectedImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
-                        .cornerRadius(12)
-                }
-                
-                PhotosPicker("Add New Memory", selection: $photoItem, matching: .images)
-                    .font(.title2)
-                    .foregroundColor(.blue)
-                    .onChange(of: photoItem) {
-                        Task {
-                            await handleImageSelection(photoItem)
-                        }
+                PhotosPicker(
+                    selection: $photoItem,
+                    matching: .images,
+                    photoLibrary: .shared()
+                ) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                        Text("Add New Memory")
+                            .fontWeight(.medium)
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, .blue.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(25)
+                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .onChange(of: photoItem) {
+                    Task {
+                        await handleImageSelection(photoItem)
+                    }
+                }
                 
                 Text("Your Memories")
                     .font(.headline)
