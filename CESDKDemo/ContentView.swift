@@ -4,7 +4,7 @@ import IMGLYPhotoEditor
 import IMGLYEngine
 
 struct JournalEntry: Codable, Identifiable {
-    let id = UUID()
+    var id = UUID()
     let imagePath: String
     let scenePath: String
     let createdAt: Date
@@ -44,9 +44,9 @@ struct ContentView: View {
                 PhotosPicker("Add New Memory", selection: $photoItem, matching: .images)
                     .font(.title2)
                     .foregroundColor(.blue)
-                    .onChange(of: photoItem) { newValue in
+                    .onChange(of: photoItem) {
                         Task {
-                            await handleImageSelection(newValue)
+                            await handleImageSelection(photoItem)
                         }
                     }
                 
