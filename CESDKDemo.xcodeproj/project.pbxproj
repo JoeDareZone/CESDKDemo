@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5A4D86DE2DFC67210087C944 /* IMGLYPhotoEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4D86DD2DFC67210087C944 /* IMGLYPhotoEditor */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5A4D86B12DFC669F0087C944 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A4D86DE2DFC67210087C944 /* IMGLYPhotoEditor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = CESDKDemo;
 			packageProductDependencies = (
+				5A4D86DD2DFC67210087C944 /* IMGLYPhotoEditor */,
 			);
 			productName = CESDKDemo;
 			productReference = 5A4D86A02DFC669E0087C944 /* CESDKDemo.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 5A4D86972DFC669E0087C944;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5A4D86DC2DFC67210087C944 /* XCRemoteSwiftPackageReference "IMGLYUI-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5A4D86A12DFC669E0087C944 /* Products */;
 			projectDirPath = "";
@@ -558,6 +567,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5A4D86DC2DFC67210087C944 /* XCRemoteSwiftPackageReference "IMGLYUI-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/imgly/IMGLYUI-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.53.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A4D86DD2DFC67210087C944 /* IMGLYPhotoEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A4D86DC2DFC67210087C944 /* XCRemoteSwiftPackageReference "IMGLYUI-swift" */;
+			productName = IMGLYPhotoEditor;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5A4D86982DFC669E0087C944 /* Project object */;
 }
