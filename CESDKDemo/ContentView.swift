@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var tempURL: URL?
     @State private var currentEngine: Engine?
     @State private var journalEntries: [JournalEntry] = []
+    @State private var sceneToLoad: URL?
+    @State private var currentEntry: JournalEntry?
     
     let engineSettings = EngineSettings(
         license: "BpLnq7K-IELfyH7VwXuepx6z7I7Z1ByVXWvOymVZ12Mfb2dOAGQQI7hbCnfQ4d4s",
@@ -73,7 +75,7 @@ struct ContentView: View {
                         ], spacing: 15) {
                             ForEach(journalEntries) { entry in
                                 JournalEntryView(entry: entry) {
-                                    print("Tapped entry: \(entry.title)")
+                                    openEntryForEditing(entry)
                                 }
                             }
                         }
@@ -90,7 +92,18 @@ struct ContentView: View {
                         .imgly.onCreate { engine in
                             currentEngine = engine
                             
-                            if let url = tempURL {
+                            if let sceneURL = sceneToLoad {
+                                let sceneString = try String(contentsOf: sceneURL, encoding: .utf8)
+                                try await engine.scene.load(from: sceneString)
+                                
+                                try await engine.addDefaultAssetSources(baseURL: Engine.assetBaseURL)
+                                try await engine.addDemoAssetSources(
+                                    sceneMode: engine.scene.getMode(),
+                                    withUploadAssetSources: true
+                                )
+                                try await engine.asset.addSource(TextAssetSource(engine: engine))
+                                
+                            } else if let url = tempURL {
                                 try await engine.scene.create(fromImage: url)
                                 
                                 let page = try engine.scene.getPages().first!
@@ -133,10 +146,20 @@ struct ContentView: View {
         }
     }
     
+    private func openEntryForEditing(_ entry: JournalEntry) {
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let sceneURL = documentsURL.appendingPathComponent(entry.scenePath)
+        
+        sceneToLoad = sceneURL
+        currentEntry = entry
+        tempURL = nil
+        showEditor = true
+    }
+    
     private func saveJournalEntry(engine: Engine) async {
         do {
             let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let entryID = UUID().uuidString
+            let entryID = currentEntry?.id.uuidString ?? UUID().uuidString
             
             let scene = try engine.scene.get()!
             let imageData = try await engine.block.export(scene, mimeType: .jpeg)
@@ -150,16 +173,29 @@ struct ContentView: View {
             let sceneURL = documentsURL.appendingPathComponent(scenePath)
             try sceneData.write(to: sceneURL)
             
-            let newEntry = JournalEntry(
-                imagePath: imagePath,
-                scenePath: scenePath,
-                createdAt: Date(),
-                title: "Memory from \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none))"
-            )
-            
             await MainActor.run {
-                journalEntries.append(newEntry)
+                if let existingEntry = currentEntry {
+                    if let index = journalEntries.firstIndex(where: { $0.id == existingEntry.id }) {
+                        journalEntries[index] = JournalEntry(
+                            imagePath: imagePath,
+                            scenePath: scenePath,
+                            createdAt: existingEntry.createdAt,
+                            title: existingEntry.title
+                        )
+                    }
+                } else {
+                    let newEntry = JournalEntry(
+                        imagePath: imagePath,
+                        scenePath: scenePath,
+                        createdAt: Date(),
+                        title: "Memory from \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none))"
+                    )
+                    journalEntries.append(newEntry)
+                }
+                
                 saveJournalEntries()
+                sceneToLoad = nil
+                currentEntry = nil
             }
             
             print("✅ Journal entry saved successfully!")
@@ -197,6 +233,8 @@ struct ContentView: View {
                 await MainActor.run {
                     tempURL = url
                     selectedImage = uiImage
+                    sceneToLoad = nil
+                    currentEntry = nil
                     showEditor = true
                 }
             }
